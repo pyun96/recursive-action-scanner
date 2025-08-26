@@ -118,6 +118,11 @@ runs:
         node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json
         SCAN_EXIT_CODE=$?
         
+        echo "DEBUG: SCAN_EXIT_CODE=$SCAN_EXIT_CODE"
+        echo "DEBUG: results.json exists: $(test -f results.json && echo "YES" || echo "NO")"
+        echo "DEBUG: Current directory: $(pwd)"
+        echo "DEBUG: Files in directory: $(ls -la)"
+        
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
           echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
           echo "DEBUG: GITHUB_OUTPUT file exists: $(test -f "$GITHUB_OUTPUT" && echo "YES" || echo "NO")"
