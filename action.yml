@@ -118,25 +118,13 @@ runs:
         node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json
         SCAN_EXIT_CODE=$?
         
-        echo "DEBUG: SCAN_EXIT_CODE=$SCAN_EXIT_CODE"
-        echo "DEBUG: results.json exists: $(test -f results.json && echo "YES" || echo "NO")"
-        echo "DEBUG: Current directory: $(pwd)"
-        echo "DEBUG: Files in directory: $(ls -la)"
-        
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
-          echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
-          echo "DEBUG: GITHUB_OUTPUT file exists: $(test -f "$GITHUB_OUTPUT" && echo "YES" || echo "NO")"
-          echo "DEBUG: GITHUB_OUTPUT permissions: $(ls -la "$GITHUB_OUTPUT" 2>/dev/null || echo "FILE NOT FOUND")"
-          # Try writing outputs with error checking
-          echo "DEBUG: Starting output write..."
           {
             echo "scan_success=true"
             echo "total_actions=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")"
             echo "root_actions=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")"
             echo "results_json=$(cat results.json | tr -d '\n')"
           } >> "$GITHUB_OUTPUT"
-          echo "DEBUG: Output write completed. File contents:"
-          cat "$GITHUB_OUTPUT" || echo "Could not read output file"
           
           
           # Generate text output if requested
