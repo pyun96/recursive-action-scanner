@@ -123,7 +123,9 @@ runs:
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
           echo "DEBUG: Scan command succeeded and results.json exists, setting outputs"
           echo "DEBUG: Results file size: $(wc -c < results.json) bytes"
+          echo "DEBUG: GITHUB_OUTPUT variable: $GITHUB_OUTPUT"
           echo "scan_success=true" >> $GITHUB_OUTPUT
+          echo "DEBUG: Wrote scan_success=true to $GITHUB_OUTPUT"
           
           # Copy results to workspace for artifact upload
           cp results.json $GITHUB_WORKSPACE/results.json
@@ -141,9 +143,14 @@ runs:
           
           echo "DEBUG: TOTAL_ACTIONS=$TOTAL_ACTIONS"
           echo "DEBUG: ROOT_ACTIONS=$ROOT_ACTIONS"
+          echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
+          echo "DEBUG: Writing outputs to $GITHUB_OUTPUT"
           
           echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
           echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
+          
+          echo "DEBUG: Contents of GITHUB_OUTPUT file:"
+          cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
           
           # Generate text output if requested
           if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
