@@ -128,9 +128,13 @@ runs:
           echo "$RESULTS_JSON" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          # Extract summary data
-          TOTAL_ACTIONS=$(echo "$RESULTS_JSON" | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).summary.totalUniqueActions)")
-          ROOT_ACTIONS=$(echo "$RESULTS_JSON" | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).summary.totalRootActions)")
+          # Extract summary data using a more reliable approach
+          echo "DEBUG: Extracting summary data from results.json"
+          TOTAL_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")
+          ROOT_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")
+          
+          echo "DEBUG: TOTAL_ACTIONS=$TOTAL_ACTIONS"
+          echo "DEBUG: ROOT_ACTIONS=$ROOT_ACTIONS"
           
           echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
           echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
