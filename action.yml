@@ -116,7 +116,13 @@ runs:
         
         # Run JSON scan
         echo "Running: node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }}"
-        if node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json; then
+        node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json
+        SCAN_EXIT_CODE=$?
+        echo "DEBUG: Scan command exit code: $SCAN_EXIT_CODE"
+        
+        if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
+          echo "DEBUG: Scan command succeeded and results.json exists, setting outputs"
+          echo "DEBUG: Results file size: $(wc -c < results.json) bytes"
           echo "scan_success=true" >> $GITHUB_OUTPUT
           
           # Copy results to workspace for artifact upload
@@ -150,6 +156,11 @@ runs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
         else
+          echo "DEBUG: Scan command failed (exit code: $SCAN_EXIT_CODE) or results.json missing"
+          echo "DEBUG: Files in directory: $(ls -la)"
+          if [ ! -f results.json ]; then
+            echo "DEBUG: results.json file does not exist"
+          fi
           echo "scan_success=false" >> $GITHUB_OUTPUT
           echo "total_actions=0" >> $GITHUB_OUTPUT
           echo "root_actions=0" >> $GITHUB_OUTPUT
