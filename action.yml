@@ -224,3 +224,13 @@ runs:
             });
             console.log('Created new PR comment');
           }
+    
+    - name: Upload scan results as artifact
+      if: steps.scan.outputs.scan_success == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: recursive-scan-results-${{ github.run_id }}
+        path: |
+          ${{ github.action_path }}/results.json
+          ${{ github.action_path }}/results.txt
+        retention-days: 7
