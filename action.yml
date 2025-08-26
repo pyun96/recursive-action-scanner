@@ -119,12 +119,16 @@ runs:
         SCAN_EXIT_CODE=$?
         
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
+          echo "DEBUG: GITHUB_OUTPUT file is: $GITHUB_OUTPUT"
+          echo "DEBUG: Writing outputs to file..."
           {
             echo "scan_success=true"
             echo "total_actions=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")"
             echo "root_actions=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")"
             echo "results_json=$(cat results.json | tr -d '\n')"
           } >> "$GITHUB_OUTPUT"
+          echo "DEBUG: Outputs written. File contents:"
+          cat "$GITHUB_OUTPUT"
           
           
           # Generate text output if requested
