@@ -1,0 +1,58 @@
+# Test the action functionality
+name: Test Recursive Action Scanner
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['action.yml', 'lib/**', 'index.mjs']
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    name: Test Action Modes
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test Action Mode
+        id: action-test
+        uses: ./
+        with:
+          mode: action
+          action-reference: 'actions/setup-node@v4'
+          post-comment: false
+          output-format: json
+      
+      - name: Verify Action Test Results
+        run: |
+          echo "Scan success: ${{ steps.action-test.outputs.scan-success }}"
+          echo "Total actions: ${{ steps.action-test.outputs.total-actions }}"
+          echo "Root actions: ${{ steps.action-test.outputs.root-actions }}"
+          
+          if [ "${{ steps.action-test.outputs.scan-success }}" = "true" ]; then
+            echo "✅ Action mode test passed"
+          else
+            echo "❌ Action mode test failed"
+            exit 1
+          fi
+      
+      - name: Test Complex Action with Dependencies
+        id: complex-test
+        uses: ./
+        with:
+          mode: action
+          action-reference: 'actions/setup-python@v5'
+          max-depth: 3
+          post-comment: false
+      
+      - name: Verify Complex Test Results  
+        run: |
+          echo "Complex scan success: ${{ steps.complex-test.outputs.scan-success }}"
+          echo "Complex total actions: ${{ steps.complex-test.outputs.total-actions }}"
+          
+          if [ "${{ steps.complex-test.outputs.scan-success }}" = "true" ]; then
+            echo "✅ Complex action test passed"
+          else
+            echo "❌ Complex action test failed"
+            exit 1
+          fi

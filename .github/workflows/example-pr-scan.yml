@@ -1,0 +1,86 @@
+# Example workflow showing how to use the Recursive Action Scanner
+# This is a template that other repositories can copy and customize
+
+name: Example - Recursive Action Scanner
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # Basic usage - scan PR changes and comment results
+  scan-pr-basic:
+    runs-on: ubuntu-latest
+    name: Basic PR Scan
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scan Action Dependencies
+        uses: ./  # In your repo, use: username/recursive-action-scanner@v1
+        with:
+          mode: pr
+          pr-number: ${{ github.event.pull_request.number }}
+
+  # Advanced usage - custom configuration
+  scan-pr-advanced:
+    runs-on: ubuntu-latest  
+    name: Advanced PR Scan
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scan with Custom Settings
+        id: scan
+        uses: ./  # In your repo, use: username/recursive-action-scanner@v1
+        with:
+          mode: pr
+          pr-number: ${{ github.event.pull_request.number }}
+          max-depth: 10
+          output-format: json
+          post-comment: true
+          comment-title: "🔍 Custom Action Dependency Analysis"
+      
+      - name: Process Scan Results
+        if: steps.scan.outputs.scan-success == 'true'
+        run: |
+          echo "Found ${{ steps.scan.outputs.total-actions }} total actions"
+          echo "Scanned ${{ steps.scan.outputs.root-actions }} root actions"
+          echo "Results: ${{ steps.scan.outputs.results-json }}"
+
+  # Scan specific commit example
+  scan-commit-example:
+    runs-on: ubuntu-latest
+    name: Commit Scan Example
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scan Latest Commit
+        uses: ./  # In your repo, use: username/recursive-action-scanner@v1
+        with:
+          mode: commit
+          commit-sha: ${{ github.sha }}
+          post-comment: false
+          output-format: text
+
+  # Scan individual action example  
+  scan-action-example:
+    runs-on: ubuntu-latest
+    name: Individual Action Scan
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Analyze Specific Action
+        uses: ./  # In your repo, use: username/recursive-action-scanner@v1
+        with:
+          mode: action
+          action-reference: 'actions/setup-node@v4'
+          max-depth: 5
+          post-comment: false

@@ -1,0 +1,31 @@
+{
+  "name": "recursive-action-scanner",
+  "version": "1.0.0",
+  "description": "Recursively scans GitHub Actions and their dependencies from PR changes",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "start": "node index.mjs"
+  },
+  "type": "module",
+  "keywords": ["github-actions", "security", "dependency-analysis"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.7",
+    "octokit": "^4.1.2",
+    "winston": "^3.17.0",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-standard": "^17.1.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "transform": {}
+  }
+}

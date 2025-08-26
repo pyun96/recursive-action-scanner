@@ -1,0 +1,199 @@
+name: 'Recursive Action Scanner'
+description: 'Recursively scan GitHub Actions and their dependencies from markdown file changes'
+branding:
+  icon: 'search'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
+  
+  mode:
+    description: 'Scanning mode: pr, commit, or action'
+    required: false
+    default: 'pr'
+  
+  pr-number:
+    description: 'Pull request number (required for pr mode)'
+    required: false
+  
+  commit-sha:
+    description: 'Commit SHA (required for commit mode)'
+    required: false
+  
+  action-reference:
+    description: 'Action reference to scan (required for action mode, format: org/action@ref)'
+    required: false
+  
+  max-depth:
+    description: 'Maximum recursion depth for dependency scanning'
+    required: false
+    default: '5'
+  
+  output-format:
+    description: 'Output format: json or text'
+    required: false
+    default: 'json'
+  
+  post-comment:
+    description: 'Post results as PR comment (only works in pr mode)'
+    required: false
+    default: 'true'
+  
+  comment-title:
+    description: 'Title for the PR comment'
+    required: false
+    default: '🔍 Recursive Action Scanner Results'
+
+outputs:
+  results-json:
+    description: 'Scan results in JSON format'
+  
+  results-text:
+    description: 'Scan results in text format'
+  
+  total-actions:
+    description: 'Total number of unique actions found'
+  
+  root-actions:
+    description: 'Number of root actions scanned'
+  
+  scan-success:
+    description: 'Whether the scan completed successfully'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        npm ci --production
+    
+    - name: Run recursive scan
+      id: scan
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        cd ${{ github.action_path }}
+        
+        # Determine scan command based on mode
+        case "${{ inputs.mode }}" in
+          "pr")
+            if [ -z "${{ inputs.pr-number }}" ]; then
+              echo "::error::PR number is required for pr mode"
+              exit 1
+            fi
+            SCAN_CMD="scan-pr --url ${{ github.server_url }}/${{ github.repository }} --pr ${{ inputs.pr-number }}"
+            ;;
+          "commit")
+            if [ -z "${{ inputs.commit-sha }}" ]; then
+              echo "::error::Commit SHA is required for commit mode"
+              exit 1
+            fi
+            SCAN_CMD="scan-commit --url ${{ github.server_url }}/${{ github.repository }} --sha ${{ inputs.commit-sha }}"
+            ;;
+          "action")
+            if [ -z "${{ inputs.action-reference }}" ]; then
+              echo "::error::Action reference is required for action mode"
+              exit 1
+            fi
+            SCAN_CMD="scan-action --action '${{ inputs.action-reference }}'"
+            ;;
+          *)
+            echo "::error::Invalid mode: ${{ inputs.mode }}. Must be pr, commit, or action"
+            exit 1
+            ;;
+        esac
+        
+        # Run JSON scan
+        echo "Running: node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }}"
+        if node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json; then
+          echo "scan_success=true" >> $GITHUB_OUTPUT
+          
+          # Set JSON output
+          RESULTS_JSON=$(cat results.json)
+          echo "results_json<<EOF" >> $GITHUB_OUTPUT
+          echo "$RESULTS_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extract summary data
+          TOTAL_ACTIONS=$(echo "$RESULTS_JSON" | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).summary.totalUniqueActions)")
+          ROOT_ACTIONS=$(echo "$RESULTS_JSON" | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).summary.totalRootActions)")
+          
+          echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
+          echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
+          
+          # Generate text output if requested
+          if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
+            node index.mjs $SCAN_CMD --format text --max-depth ${{ inputs.max-depth }} --output results.txt
+            RESULTS_TEXT=$(cat results.txt)
+            echo "results_text<<EOF" >> $GITHUB_OUTPUT
+            echo "$RESULTS_TEXT" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "scan_success=false" >> $GITHUB_OUTPUT
+          echo "total_actions=0" >> $GITHUB_OUTPUT
+          echo "root_actions=0" >> $GITHUB_OUTPUT
+          echo "::warning::Scan failed or found no actions to analyze"
+        fi
+    
+    - name: Post PR comment
+      if: steps.scan.outputs.scan_success == 'true' && inputs.mode == 'pr' && inputs.post-comment == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const resultsText = `${{ steps.scan.outputs.results_text }}`;
+          
+          if (!resultsText) {
+            console.log('No text results to post');
+            return;
+          }
+          
+          // Create or update PR comment
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: ${{ inputs.pr-number }},
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && 
+            comment.body.includes('<!-- recursive-action-scanner -->')
+          );
+          
+          const commentBody = `<!-- recursive-action-scanner -->
+          ## ${{ inputs.comment-title }}
+          
+          ${resultsText}
+          
+          ---
+          *This comment was automatically generated by [Recursive Action Scanner](https://github.com/username/recursive-action-scanner)*`;
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: commentBody
+            });
+            console.log('Updated existing PR comment');
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr-number }},
+              body: commentBody
+            });
+            console.log('Created new PR comment');
+          }
