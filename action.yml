@@ -119,7 +119,12 @@ runs:
         SCAN_EXIT_CODE=$?
         
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
+          echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
+          echo "DEBUG: GITHUB_OUTPUT file exists: $(test -f "$GITHUB_OUTPUT" && echo "YES" || echo "NO")"
+          echo "DEBUG: GITHUB_OUTPUT permissions: $(ls -la "$GITHUB_OUTPUT" 2>/dev/null || echo "FILE NOT FOUND")"
           echo "scan_success=true" >> $GITHUB_OUTPUT
+          echo "DEBUG: After writing scan_success, file contents:"
+          cat "$GITHUB_OUTPUT" || echo "Could not read GITHUB_OUTPUT file"
           
           # Set JSON output
           RESULTS_JSON=$(cat results.json)
