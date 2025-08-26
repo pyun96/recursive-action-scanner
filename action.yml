@@ -115,7 +115,6 @@ runs:
         esac
         
         # Run JSON scan
-        echo "Running: node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }}"
         node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json
         SCAN_EXIT_CODE=$?
         
@@ -132,10 +131,8 @@ runs:
           TOTAL_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")
           ROOT_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")
           
-          
           echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
           echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
-          
           
           # Generate text output if requested
           if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
