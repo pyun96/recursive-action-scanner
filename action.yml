@@ -48,19 +48,19 @@ inputs:
     default: '🔍 Recursive Action Scanner Results'
 
 outputs:
-  results-json:
+  results_json:
     description: 'Scan results in JSON format'
   
-  results-text:
+  results_text:
     description: 'Scan results in text format'
   
-  total-actions:
+  total_actions:
     description: 'Total number of unique actions found'
   
-  root-actions:
+  root_actions:
     description: 'Number of root actions scanned'
   
-  scan-success:
+  scan_success:
     description: 'Whether the scan completed successfully'
 
 runs:
@@ -124,7 +124,7 @@ runs:
           echo "DEBUG: Scan command succeeded and results.json exists, setting outputs"
           echo "DEBUG: Results file size: $(wc -c < results.json) bytes"
           echo "DEBUG: GITHUB_OUTPUT variable: $GITHUB_OUTPUT"
-          echo "scan-success=true" >> $GITHUB_OUTPUT
+          echo "scan_success=true" >> $GITHUB_OUTPUT
           echo "DEBUG: Wrote scan_success=true to $GITHUB_OUTPUT"
           
           # Copy results to workspace for artifact upload
@@ -146,8 +146,8 @@ runs:
           echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
           echo "DEBUG: Writing outputs to $GITHUB_OUTPUT"
           
-          echo "total-actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
-          echo "root-actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
+          echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
+          echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
           
           echo "DEBUG: Contents of GITHUB_OUTPUT file:"
           cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
@@ -168,9 +168,9 @@ runs:
           if [ ! -f results.json ]; then
             echo "DEBUG: results.json file does not exist"
           fi
-          echo "scan-success=false" >> $GITHUB_OUTPUT
-          echo "total-actions=0" >> $GITHUB_OUTPUT
-          echo "root-actions=0" >> $GITHUB_OUTPUT
+          echo "scan_success=false" >> $GITHUB_OUTPUT
+          echo "total_actions=0" >> $GITHUB_OUTPUT
+          echo "root_actions=0" >> $GITHUB_OUTPUT
           echo "::warning::Scan failed or found no actions to analyze"
         fi
     
