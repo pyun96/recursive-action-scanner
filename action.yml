@@ -118,14 +118,9 @@ runs:
         echo "Running: node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }}"
         node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json
         SCAN_EXIT_CODE=$?
-        echo "DEBUG: Scan command exit code: $SCAN_EXIT_CODE"
         
         if [ $SCAN_EXIT_CODE -eq 0 ] && [ -f results.json ]; then
-          echo "DEBUG: Scan command succeeded and results.json exists, setting outputs"
-          echo "DEBUG: Results file size: $(wc -c < results.json) bytes"
-          echo "DEBUG: GITHUB_OUTPUT variable: $GITHUB_OUTPUT"
           echo "scan_success=true" >> $GITHUB_OUTPUT
-          echo "DEBUG: Wrote scan_success=true to $GITHUB_OUTPUT"
           
           # Copy results to workspace for artifact upload
           cp results.json $GITHUB_WORKSPACE/results.json
@@ -136,21 +131,14 @@ runs:
           echo "$RESULTS_JSON" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          # Extract summary data using a more reliable approach
-          echo "DEBUG: Extracting summary data from results.json"
+          # Extract summary data
           TOTAL_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")
           ROOT_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")
           
-          echo "DEBUG: TOTAL_ACTIONS=$TOTAL_ACTIONS"
-          echo "DEBUG: ROOT_ACTIONS=$ROOT_ACTIONS"
-          echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
-          echo "DEBUG: Writing outputs to $GITHUB_OUTPUT"
           
           echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
           echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
           
-          echo "DEBUG: Contents of GITHUB_OUTPUT file:"
-          cat $GITHUB_OUTPUT || echo "Could not read GITHUB_OUTPUT file"
           
           # Generate text output if requested
           if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
@@ -163,11 +151,6 @@ runs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
         else
-          echo "DEBUG: Scan command failed (exit code: $SCAN_EXIT_CODE) or results.json missing"
-          echo "DEBUG: Files in directory: $(ls -la)"
-          if [ ! -f results.json ]; then
-            echo "DEBUG: results.json file does not exist"
-          fi
           echo "scan_success=false" >> $GITHUB_OUTPUT
           echo "total_actions=0" >> $GITHUB_OUTPUT
           echo "root_actions=0" >> $GITHUB_OUTPUT
