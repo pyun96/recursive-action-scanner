@@ -122,20 +122,20 @@ runs:
           echo "DEBUG: GITHUB_OUTPUT=$GITHUB_OUTPUT"
           echo "DEBUG: GITHUB_OUTPUT file exists: $(test -f "$GITHUB_OUTPUT" && echo "YES" || echo "NO")"
           echo "DEBUG: GITHUB_OUTPUT permissions: $(ls -la "$GITHUB_OUTPUT" 2>/dev/null || echo "FILE NOT FOUND")"
-          echo "scan_success=true" >> $GITHUB_OUTPUT
-          echo "DEBUG: After writing scan_success, file contents:"
-          cat "$GITHUB_OUTPUT" || echo "Could not read GITHUB_OUTPUT file"
+          # Use ::set-output for composite action compatibility
+          echo "::set-output name=scan_success::true"
+          echo "DEBUG: Set scan_success output using ::set-output"
           
-          # Set JSON output (using single line format to avoid heredoc issues)
+          # Set JSON output (using single line format)
           RESULTS_JSON=$(cat results.json | tr -d '\n')
-          echo "results_json=$RESULTS_JSON" >> $GITHUB_OUTPUT
+          echo "::set-output name=results_json::$RESULTS_JSON"
           
           # Extract summary data
           TOTAL_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalUniqueActions)")
           ROOT_ACTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('results.json', 'utf8')).summary.totalRootActions)")
           
-          echo "total_actions=$TOTAL_ACTIONS" >> $GITHUB_OUTPUT
-          echo "root_actions=$ROOT_ACTIONS" >> $GITHUB_OUTPUT
+          echo "::set-output name=total_actions::$TOTAL_ACTIONS"
+          echo "::set-output name=root_actions::$ROOT_ACTIONS"
           
           # Generate text output if requested
           if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
@@ -143,12 +143,12 @@ runs:
             RESULTS_TEXT=$(cat results.txt)
             # Use base64 encoding to safely handle multi-line text
             RESULTS_TEXT_B64=$(echo "$RESULTS_TEXT" | base64 -w 0)
-            echo "results_text=$RESULTS_TEXT_B64" >> $GITHUB_OUTPUT
+            echo "::set-output name=results_text::$RESULTS_TEXT_B64"
           fi
         else
-          echo "scan_success=false" >> $GITHUB_OUTPUT
-          echo "total_actions=0" >> $GITHUB_OUTPUT
-          echo "root_actions=0" >> $GITHUB_OUTPUT
+          echo "::set-output name=scan_success::false"
+          echo "::set-output name=total_actions::0"
+          echo "::set-output name=root_actions::0"
           echo "::warning::Scan failed or found no actions to analyze"
         fi
     
