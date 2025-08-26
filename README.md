@@ -157,13 +157,21 @@ node index.mjs scan-action --action "actions/checkout@v4"
 ### Input Detection
 The scanner looks for GitHub Action references in markdown files using this pattern:
 ```
-org/actionname@commithash
+org/actionname@reference
 ```
 
-Examples:
-- `actions/checkout@v4`
-- `actions/setup-node@3.2.1`
-- `custom-org/my-action@abc123def456...`
+Supported reference types:
+- **Version tags**: `actions/checkout@v4`, `actions/setup-node@v3.2.1`
+- **Branch names**: `custom-org/my-action@main`, `user/action@develop`  
+- **Commit hashes**: `actions/upload-artifact@abc123def456789...` (full 40-char SHA)
+
+### PR Scanning Behavior
+When scanning Pull Requests, the scanner analyzes **only the newly added lines** in the PR diff, not the entire file content. This means:
+
+- ✅ **Scans only new actions**: Only action references added in the PR are analyzed
+- ✅ **Ignores existing actions**: Previously approved actions in the file are not re-scanned
+- ✅ **Efficient processing**: Faster scanning by focusing on changes
+- 🔄 **Fallback support**: If diff data is unavailable, falls back to full file scan
 
 ### Recursive Scanning
 For each detected action:
