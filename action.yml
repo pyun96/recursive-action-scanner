@@ -119,6 +119,9 @@ runs:
         if node index.mjs $SCAN_CMD --format json --max-depth ${{ inputs.max-depth }} --output results.json; then
           echo "scan_success=true" >> $GITHUB_OUTPUT
           
+          # Copy results to workspace for artifact upload
+          cp results.json $GITHUB_WORKSPACE/results.json
+          
           # Set JSON output
           RESULTS_JSON=$(cat results.json)
           echo "results_json<<EOF" >> $GITHUB_OUTPUT
@@ -135,6 +138,8 @@ runs:
           # Generate text output if requested
           if [ "${{ inputs.output-format }}" = "text" ] || [ "${{ inputs.post-comment }}" = "true" ]; then
             node index.mjs $SCAN_CMD --format text --max-depth ${{ inputs.max-depth }} --output results.txt
+            # Copy text results to workspace for artifact upload
+            cp results.txt $GITHUB_WORKSPACE/results.txt
             RESULTS_TEXT=$(cat results.txt)
             echo "results_text<<EOF" >> $GITHUB_OUTPUT
             echo "$RESULTS_TEXT" >> $GITHUB_OUTPUT
