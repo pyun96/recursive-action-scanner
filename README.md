@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: username/recursive-action-scanner@v1
+      - uses: pyun96/recursive-action-scanner@main
         with:
           mode: 'pr'
           pr-number: ${{ github.event.pull_request.number }}
@@ -107,17 +107,17 @@ node index.mjs scan-action --action "actions/checkout@v4"
 
 | Output | Description |
 |--------|-------------|
-| `results-json` | Scan results in JSON format |
-| `results-text` | Scan results in text format |
-| `total-actions` | Total number of unique actions found |
-| `root-actions` | Number of root actions scanned |
-| `scan-success` | Whether the scan completed successfully |
+| `results_json` | Scan results in JSON format |
+| `results_text` | Scan results in text format |
+| `total_actions` | Total number of unique actions found |
+| `root_actions` | Number of root actions scanned |
+| `scan_success` | Whether the scan completed successfully |
 
 ## Usage Examples
 
 ### 1. Scan PR Changes
 ```yaml
-- uses: username/recursive-action-scanner@v1
+- uses: pyun96/recursive-action-scanner@main
   with:
     mode: pr
     pr-number: ${{ github.event.pull_request.number }}
@@ -126,7 +126,7 @@ node index.mjs scan-action --action "actions/checkout@v4"
 
 ### 2. Scan Specific Commit
 ```yaml
-- uses: username/recursive-action-scanner@v1
+- uses: pyun96/recursive-action-scanner@main
   with:
     mode: commit
     commit-sha: ${{ github.sha }}
@@ -134,7 +134,7 @@ node index.mjs scan-action --action "actions/checkout@v4"
 
 ### 3. Scan Individual Action
 ```yaml
-- uses: username/recursive-action-scanner@v1
+- uses: pyun96/recursive-action-scanner@main
   with:
     mode: action
     action-reference: 'actions/setup-node@v4'
@@ -143,7 +143,7 @@ node index.mjs scan-action --action "actions/checkout@v4"
 
 ### 4. Advanced Usage with Custom Token
 ```yaml
-- uses: username/recursive-action-scanner@v1
+- uses: pyun96/recursive-action-scanner@main
   with:
     mode: pr
     pr-number: ${{ github.event.pull_request.number }}
