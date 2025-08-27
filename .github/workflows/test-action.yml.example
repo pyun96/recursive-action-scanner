@@ -25,11 +25,11 @@ jobs:
       
       - name: Verify Action Test Results
         run: |
-          echo "Scan success: ${{ steps.action-test.outputs.scan-success }}"
-          echo "Total actions: ${{ steps.action-test.outputs.total-actions }}"
-          echo "Root actions: ${{ steps.action-test.outputs.root-actions }}"
+          echo "Scan success: ${{ steps.action-test.outputs.scan_success }}"
+          echo "Total actions: ${{ steps.action-test.outputs.total_actions }}"
+          echo "Root actions: ${{ steps.action-test.outputs.root_actions }}"
           
-          if [ "${{ steps.action-test.outputs.scan-success }}" = "true" ]; then
+          if [ "${{ steps.action-test.outputs.scan_success }}" = "true" ]; then
             echo "✅ Action mode test passed"
           else
             echo "❌ Action mode test failed"
@@ -47,10 +47,10 @@ jobs:
       
       - name: Verify Complex Test Results  
         run: |
-          echo "Complex scan success: ${{ steps.complex-test.outputs.scan-success }}"
-          echo "Complex total actions: ${{ steps.complex-test.outputs.total-actions }}"
+          echo "Complex scan success: ${{ steps.complex-test.outputs.scan_success }}"
+          echo "Complex total actions: ${{ steps.complex-test.outputs.total_actions }}"
           
-          if [ "${{ steps.complex-test.outputs.scan-success }}" = "true" ]; then
+          if [ "${{ steps.complex-test.outputs.scan_success }}" = "true" ]; then
             echo "✅ Complex action test passed"
           else
             echo "❌ Complex action test failed"

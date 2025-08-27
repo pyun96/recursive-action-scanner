@@ -48,11 +48,11 @@ jobs:
           comment-title: "🔍 Custom Action Dependency Analysis"
       
       - name: Process Scan Results
-        if: steps.scan.outputs.scan-success == 'true'
+        if: steps.scan.outputs.scan_success == 'true'
         run: |
-          echo "Found ${{ steps.scan.outputs.total-actions }} total actions"
-          echo "Scanned ${{ steps.scan.outputs.root-actions }} root actions"
-          echo "Results: ${{ steps.scan.outputs.results-json }}"
+          echo "Found ${{ steps.scan.outputs.total_actions }} total actions"
+          echo "Scanned ${{ steps.scan.outputs.root_actions }} root actions"
+          echo "Results: ${{ steps.scan.outputs.results_json }}"
 
   # Scan specific commit example
   scan-commit-example:
