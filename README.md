@@ -199,8 +199,10 @@ When scanning Pull Requests, the scanner analyzes **only the newly added lines**
 When using the `repo` mode, the scanner:
 - ✅ **Fetches all workflow files**: Downloads all `.yml` and `.yaml` files from `.github/workflows/`
 - ✅ **Parses YAML workflows**: Extracts all `uses:` statements from workflow jobs and steps
-- ✅ **Scans local composite actions**: Downloads and analyzes `.github/actions/*/action.yml` files
-- ✅ **Discovers nested dependencies**: Finds external actions used within local composite actions
+- ✅ **Recursively scans local composite actions**: Downloads and analyzes `.github/actions/*/action.yml` files at all nesting depths
+- ✅ **Handles nested local actions**: Discovers local actions that reference other local actions (arbitrary depth)
+- ✅ **Prevents infinite recursion**: Tracks scanned local actions to avoid circular reference loops
+- ✅ **Discovers deeply nested dependencies**: Finds external actions used within nested local composite actions
 - ✅ **Deduplicates actions**: Removes duplicate action references across all workflows and local actions
 - 🔄 **Recursive scanning**: Then recursively scans each discovered external action for dependencies
 
@@ -218,6 +220,23 @@ Produces detailed reports including:
 - Complete dependency trees
 - Unique action inventory
 - Success/failure status for each scan
+
+## Local Action Nesting Example
+The scanner can now discover actions nested within local composite actions:
+
+```
+📁 workflow.yml
+├─ 🏠 ./.github/actions/deploy-app (LOCAL)
+│  ├─ 🏠 ./.github/actions/build-app (LOCAL) 
+│  │  └─ 📦 actions/setup-node@v4
+│  └─ 📦 actions/upload-artifact@v4
+└─ 📦 actions/checkout@v4
+```
+
+In this example, the scanner discovers:
+- `actions/checkout@v4` (direct workflow reference)
+- `actions/upload-artifact@v4` (nested in `deploy-app` local action)
+- `actions/setup-node@v4` (deeply nested in `build-app` → `deploy-app` → workflow)
 
 ## Example Output
 
