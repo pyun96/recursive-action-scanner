@@ -199,9 +199,10 @@ When scanning Pull Requests, the scanner analyzes **only the newly added lines**
 When using the `repo` mode, the scanner:
 - ✅ **Fetches all workflow files**: Downloads all `.yml` and `.yaml` files from `.github/workflows/`
 - ✅ **Parses YAML workflows**: Extracts all `uses:` statements from workflow jobs and steps
-- ✅ **Ignores local actions**: Skips actions that start with `./` or `../` (local actions)
-- ✅ **Deduplicates actions**: Removes duplicate action references across all workflows
-- 🔄 **Recursive scanning**: Then recursively scans each discovered action for dependencies
+- ✅ **Scans local composite actions**: Downloads and analyzes `.github/actions/*/action.yml` files
+- ✅ **Discovers nested dependencies**: Finds external actions used within local composite actions
+- ✅ **Deduplicates actions**: Removes duplicate action references across all workflows and local actions
+- 🔄 **Recursive scanning**: Then recursively scans each discovered external action for dependencies
 
 ### Recursive Scanning
 For each detected action:
