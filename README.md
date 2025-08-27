@@ -4,7 +4,7 @@ A GitHub Action and CLI tool that recursively scans GitHub Actions and their dep
 
 ## Features
 
-- 🔍 **Multiple scan modes**: PR changes, commits, or specific actions
+- 🔍 **Multiple scan modes**: PR changes, commits, specific actions, or entire repositories
 - 🌲 **Recursive dependency mapping**: Discovers nested action dependencies 
 - 📊 **Comprehensive reporting**: Generates detailed dependency trees
 - 🚀 **Reusable GitHub Action**: Use in any repository workflow
@@ -76,8 +76,13 @@ npm start -- scan-commit --url https://github.com/owner/repo --sha abc123
 # Scan Specific Action
 npm start -- scan-action --action "actions/checkout@v4"
 
+# Scan Repository Workflows
+npm start -- scan-repo --url "https://github.com/owner/repo"
+npm start -- scan-repo --url "owner/repo"
+
 # Alternative: run directly
 node index.mjs scan-action --action "actions/checkout@v4"
+node index.mjs scan-repo --url "owner/repo"
 ```
 
 #### Command Options
@@ -94,10 +99,11 @@ node index.mjs scan-action --action "actions/checkout@v4"
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `github-token` | GitHub token for API access | No | `${{ github.token }}` |
-| `mode` | Scanning mode: `pr`, `commit`, or `action` | No | `pr` |
+| `mode` | Scanning mode: `pr`, `commit`, `action`, or `repo` | No | `pr` |
 | `pr-number` | Pull request number (for `pr` mode) | No | - |
 | `commit-sha` | Commit SHA (for `commit` mode) | No | - |
 | `action-reference` | Action reference (for `action` mode) | No | - |
+| `repo-url` | Repository URL (for `repo` mode) | No | - |
 | `max-depth` | Maximum recursion depth | No | `5` |
 | `output-format` | Output format: `json` or `text` | No | `json` |
 | `post-comment` | Post results as PR comment | No | `true` |
@@ -141,7 +147,17 @@ node index.mjs scan-action --action "actions/checkout@v4"
     post-comment: false
 ```
 
-### 4. Advanced Usage with Custom Token
+### 4. Scan Repository Workflows
+```yaml
+- uses: pyun96/recursive-action-scanner@main
+  with:
+    mode: repo
+    repo-url: 'owner/repository'
+    post-comment: false
+    max-depth: 3
+```
+
+### 5. Advanced Usage with Custom Token
 ```yaml
 - uses: pyun96/recursive-action-scanner@main
   with:
@@ -172,6 +188,14 @@ When scanning Pull Requests, the scanner analyzes **only the newly added lines**
 - ✅ **Ignores existing actions**: Previously approved actions in the file are not re-scanned
 - ✅ **Efficient processing**: Faster scanning by focusing on changes
 - 🔄 **Fallback support**: If diff data is unavailable, falls back to full file scan
+
+### Repository Scanning Behavior
+When using the `repo` mode, the scanner:
+- ✅ **Fetches all workflow files**: Downloads all `.yml` and `.yaml` files from `.github/workflows/`
+- ✅ **Parses YAML workflows**: Extracts all `uses:` statements from workflow jobs and steps
+- ✅ **Ignores local actions**: Skips actions that start with `./` or `../` (local actions)
+- ✅ **Deduplicates actions**: Removes duplicate action references across all workflows
+- 🔄 **Recursive scanning**: Then recursively scans each discovered action for dependencies
 
 ### Recursive Scanning
 For each detected action:

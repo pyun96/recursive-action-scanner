@@ -5,10 +5,13 @@ import { writeFileSync } from 'fs';
 
 import { logger, GITHUB_URL_RE } from './lib/utils.mjs';
 import { RecursiveActionScanner } from './lib/scanner.mjs';
+import { WorkflowParser } from './lib/workflowParser.mjs';
 
 function validateUrl(url) {
-  if (!url.match(GITHUB_URL_RE)) {
-    throw new InvalidArgumentError("Invalid Github URL");
+  // Allow both full URLs and owner/repo format
+  const ownerRepoPattern = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
+  if (!url.match(GITHUB_URL_RE) && !url.match(ownerRepoPattern)) {
+    throw new InvalidArgumentError("Invalid Github URL or owner/repo format");
   }
   return url;
 }
@@ -138,6 +141,50 @@ async function main() {
         outputResults(results, options.output, options.format);
       } catch (e) {
         logger.error(`Scan failed: ${e.message}`);
+        process.exit(1);
+      }
+    });
+
+  program.command("scan-repo")
+    .description("Scan all GitHub Actions used in a repository's workflows")
+    .requiredOption('-u, --url <string>', 'GitHub repository URL or owner/repo format', validateUrl)
+    .action(async ({ url }, _options) => {
+      const options = { ..._options.opts(), ..._options.parent.opts() };
+      const githubToken = process.env.GITHUB_TOKEN;
+      
+      if (!githubToken) {
+        logger.error('GITHUB_TOKEN environment variable is required for repository scanning');
+        process.exit(1);
+      }
+      
+      const workflowParser = new WorkflowParser(githubToken);
+      const scanner = new RecursiveActionScanner({ maxDepth: options.maxDepth });
+      
+      try {
+        logger.info(`Starting repository workflow scan for ${url}`);
+        const actionReferences = await workflowParser.scanRepositoryWorkflows(url);
+        
+        if (actionReferences.length === 0) {
+          logger.info('No GitHub Actions found in repository workflows');
+          const emptyResults = {
+            timestamp: new Date().toISOString(),
+            summary: {
+              totalRootActions: 0,
+              totalUniqueActions: 0,
+              maxDepthUsed: options.maxDepth
+            },
+            rootActions: [],
+            allUniqueActions: []
+          };
+          outputResults(emptyResults, options.output, options.format);
+          return;
+        }
+        
+        logger.info(`Found ${actionReferences.length} unique actions, starting recursive scan`);
+        const results = await scanner.scanActionList(actionReferences);
+        outputResults(results, options.output, options.format);
+      } catch (e) {
+        logger.error(`Repository scan failed: ${e.message}`);
         process.exit(1);
       }
     });

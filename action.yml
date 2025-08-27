@@ -11,7 +11,7 @@ inputs:
     default: ${{ github.token }}
   
   mode:
-    description: 'Scanning mode: pr, commit, or action'
+    description: 'Scanning mode: pr, commit, action, or repo'
     required: false
     default: 'pr'
   
@@ -25,6 +25,10 @@ inputs:
   
   action-reference:
     description: 'Action reference to scan (required for action mode, format: org/action@ref)'
+    required: false
+  
+  repo-url:
+    description: 'Repository URL to scan workflows (required for repo mode, format: owner/repo or https://github.com/owner/repo)'
     required: false
   
   max-depth:
@@ -113,8 +117,15 @@ runs:
             fi
             SCAN_CMD="scan-action --action '${{ inputs.action-reference }}'"
             ;;
+          "repo")
+            if [ -z "${{ inputs.repo-url }}" ]; then
+              echo "::error::Repository URL is required for repo mode"
+              exit 1
+            fi
+            SCAN_CMD="scan-repo --url '${{ inputs.repo-url }}'"
+            ;;
           *)
-            echo "::error::Invalid mode: ${{ inputs.mode }}. Must be pr, commit, or action"
+            echo "::error::Invalid mode: ${{ inputs.mode }}. Must be pr, commit, action, or repo"
             exit 1
             ;;
         esac
