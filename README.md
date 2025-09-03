@@ -54,14 +54,9 @@ npm install
 
 #### Configuration
 
-1. Copy the environment file:
+Set your GitHub token as an environment variable:
 ```bash
-cp .env.example .env
-```
-
-2. Add your GitHub token to `.env`:
-```
-GITHUB_TOKEN=your_github_personal_access_token
+export GITHUB_TOKEN=your_github_personal_access_token
 ```
 
 #### Usage
