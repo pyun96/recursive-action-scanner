@@ -15,7 +15,7 @@ on:
       action-to-scan:
         description: 'Action to scan (org/action@ref format)'
         required: true
-        default: 'actions/checkout@v4'
+        default: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955'
 
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       
       - name: Scan PR Dependencies
         id: pr-scan
@@ -42,7 +42,7 @@ jobs:
       
       - name: Upload PR Scan Results
         if: steps.pr-scan.outputs.scan-success == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: pr-scan-results-${{ github.event.pull_request.number }}
           path: |
@@ -54,7 +54,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       
       - name: Scan Latest Commit
         id: commit-scan
@@ -68,7 +68,7 @@ jobs:
       
       - name: Create Issue for Large Dependency Trees
         if: steps.commit-scan.outputs.total-actions > 20
-        uses: actions/github-script@v7
+        uses: actions/github-script@5c56fde4671bc2d3592fb0f2c5b5bab9ddae03b1
         with:
           script: |
             github.rest.issues.create({
@@ -91,7 +91,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       
       - name: Scan Specific Action
         uses: username/recursive-action-scanner@v1

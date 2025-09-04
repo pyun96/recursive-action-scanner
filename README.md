@@ -28,7 +28,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: pyun96/recursive-action-scanner@main
         with:
           mode: 'pr'
@@ -69,14 +69,14 @@ npm start -- scan-pr --url https://github.com/owner/repo --pr 123
 npm start -- scan-commit --url https://github.com/owner/repo --sha abc123
 
 # Scan Specific Action
-npm start -- scan-action --action "actions/checkout@v4"
+npm start -- scan-action --action "actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955"
 
 # Scan Repository Workflows
 npm start -- scan-repo --url "https://github.com/owner/repo"
 npm start -- scan-repo --url "owner/repo"
 
 # Alternative: run directly
-node index.mjs scan-action --action "actions/checkout@v4"
+node index.mjs scan-action --action "actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955"
 node index.mjs scan-repo --url "owner/repo"
 ```
 
@@ -138,7 +138,7 @@ node index.mjs scan-repo --url "owner/repo"
 - uses: pyun96/recursive-action-scanner@main
   with:
     mode: action
-    action-reference: 'actions/setup-node@v4'
+    action-reference: 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020'
     post-comment: false
 ```
 
@@ -176,7 +176,7 @@ org/actionname@reference
 **Workflow Files (.github/workflows/*.yml, *.yaml)**: Parses YAML structure to extract all `uses:` statements from workflow jobs and steps.
 
 Supported reference types:
-- **Version tags**: `actions/checkout@v4`, `actions/setup-node@v3.2.1`
+- **Version tags**: `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955`, `actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020`
 - **Branch names**: `custom-org/my-action@main`, `user/action@develop`  
 - **Commit hashes**: `actions/upload-artifact@abc123def456789...` (full 40-char SHA)
 
@@ -223,15 +223,15 @@ The scanner can now discover actions nested within local composite actions:
 📁 workflow.yml
 ├─ 🏠 ./.github/actions/deploy-app (LOCAL)
 │  ├─ 🏠 ./.github/actions/build-app (LOCAL) 
-│  │  └─ 📦 actions/setup-node@v4
-│  └─ 📦 actions/upload-artifact@v4
-└─ 📦 actions/checkout@v4
+│  │  └─ 📦 actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+│  └─ 📦 actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+└─ 📦 actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 ```
 
 In this example, the scanner discovers:
-- `actions/checkout@v4` (direct workflow reference)
-- `actions/upload-artifact@v4` (nested in `deploy-app` local action)
-- `actions/setup-node@v4` (deeply nested in `build-app` → `deploy-app` → workflow)
+- `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955` (direct workflow reference)
+- `actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02` (nested in `deploy-app` local action)
+- `actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020` (deeply nested in `build-app` → `deploy-app` → workflow)
 
 ## Example Output
 
@@ -247,12 +247,12 @@ Generated: 2024-01-01T12:00:00.000Z
 
 ## Root Actions
 
-### actions/checkout@v4
+### actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 - Status: ✅ Success
 - Dependencies found: 3
 - Dependency tree:
-  - actions/setup-node@v3 (https://github.com/actions/setup-node/tree/v3)
-  - actions/cache@v3 (https://github.com/actions/cache/tree/v3)
+  - actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 (https://github.com/actions/setup-node/tree/3235b876344d2a9aa001b8d1453c930bba69e610)
+  - actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f (https://github.com/actions/cache/tree/2f8e54208210a422b2efd51efaa6bd6d7ca8920f)
 ```
 
 ### JSON Format
@@ -266,7 +266,7 @@ Generated: 2024-01-01T12:00:00.000Z
   },
   "rootActions": [
     {
-      "reference": "actions/checkout@v4",
+      "reference": "actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955",
       "success": true,
       "totalDependencies": 3,
       "dependencies": [...]
