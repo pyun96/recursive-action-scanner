@@ -1,6 +1,6 @@
 # Recursive Action Scanner
 
-A GitHub Action and CLI tool that recursively scans GitHub Actions and their dependencies. It can analyze Pull Request changes (markdown files and workflow files), specific commits, individual actions, or entire repositories to discover and map all recursive dependencies.
+A GitHub Action and CLI tool that recursively scans GitHub Actions and their dependencies. It can analyze Pull Request changes (markdown files, workflow files, and terraform files), specific commits, individual actions, or entire repositories to discover and map all recursive dependencies.
 
 ## Features
 
@@ -22,7 +22,7 @@ Add this action to your workflow to automatically scan action dependencies:
 name: Scan Action Dependencies
 on:
   pull_request:
-    paths: ['**/*.md']
+    paths: ['**/*.md', '**/*.tf', '**/*.hcl']
 
 jobs:
   scan:
@@ -166,7 +166,7 @@ node index.mjs scan-repo --url "owner/repo"
 ## How It Works
 
 ### Input Detection
-The scanner detects GitHub Action references in two types of files:
+The scanner detects GitHub Action references in three types of files:
 
 **Markdown Files (.md)**: Uses pattern matching to find action references:
 ```
@@ -175,16 +175,19 @@ org/actionname@reference
 
 **Workflow Files (.github/workflows/*.yml, *.yaml)**: Parses YAML structure to extract all `uses:` statements from workflow jobs and steps.
 
+**Terraform Files (.tf, .hcl)**: Uses pattern matching to find action references in Terraform configuration files, typically in GitHub Actions provider blocks.
+
 Supported reference types:
 - **Version tags**: `actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955`, `actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020`
 - **Branch names**: `custom-org/my-action@main`, `user/action@develop`  
 - **Commit hashes**: `actions/upload-artifact@abc123def456789...` (full 40-char SHA)
 
 ### PR Scanning Behavior
-When scanning Pull Requests, the scanner analyzes **only the newly added lines** in both markdown and workflow files in the PR diff, not the entire file content. This means:
+When scanning Pull Requests, the scanner analyzes **only the newly added lines** in markdown, workflow, and terraform files in the PR diff, not the entire file content. This means:
 
 - ✅ **Scans markdown files**: Detects action references added to documentation/README files
 - ✅ **Scans workflow files**: Detects new GitHub Actions added to `.github/workflows/` files
+- ✅ **Scans terraform files**: Detects action references added to Terraform configuration files (`.tf`, `.hcl`)
 - ✅ **Only new actions**: Only action references added in the PR are analyzed
 - ✅ **Ignores existing actions**: Previously approved actions in the file are not re-scanned
 - ✅ **Efficient processing**: Faster scanning by focusing on changes
